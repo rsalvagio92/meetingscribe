@@ -47,8 +47,16 @@ document.querySelectorAll('.nav-btn').forEach((btn) => {
 });
 
 function switchView(view) {
-  document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
-  document.getElementById(view).classList.add('active');
+  // Set display directly: the inline style="display:none" on sections has
+  // higher specificity than the .view.active CSS rule, so toggling the class
+  // alone wouldn't reveal Library/Settings.
+  document.querySelectorAll('.view').forEach((v) => {
+    v.classList.remove('active');
+    v.style.display = 'none';
+  });
+  const target = document.getElementById(view);
+  target.classList.add('active');
+  target.style.display = 'block';
 
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
   document.querySelector(`[data-view="${view}"]`).classList.add('active');
