@@ -158,6 +158,8 @@ def create_app(state: AppState | None = None) -> FastAPI:
 
     @app.post("/api/meetings/{mid}/notes")
     async def notes(mid: str, body: NotesBody):
+        from ..llm.base import LLMError
+
         try:
             return await service.make_notes(
                 state.cfg, state.store, state.secrets, mid,
@@ -165,6 +167,10 @@ def create_app(state: AppState | None = None) -> FastAPI:
             )
         except ValueError as e:
             raise HTTPException(400, str(e))
+        except LLMError as e:
+            # LLM unreachable / misconfigured (e.g. Ollama not running, or no
+            # provider token). Surface a clean message instead of a 500.
+            raise HTTPException(502, f"LLM request failed: {e}")
 
     @app.post("/api/meetings/{mid}/export")
     def export(mid: str, fmt: str = "md"):

@@ -85,6 +85,24 @@ def test_notes_without_transcript_400(client):
     assert r.status_code == 400
 
 
+def test_notes_llm_unreachable_502(client):
+    c, state = client
+    mid = "meeting_llmdown"
+    state.store.create(mid, "Planning", 1718000000.0, None)
+    state.store.update(mid, transcript="some transcript", status="recorded")
+    state.cfg.update({"llm": {"provider": "openai_compat", "base_url": "http://llm.local/v1"}})
+
+    with respx.mock:
+        # Simulate the LLM endpoint being unreachable.
+        respx.post("http://llm.local/v1/chat/completions").mock(
+            side_effect=httpx.ConnectError("connection refused")
+        )
+        r = c.post(f"/api/meetings/{mid}/notes", json={})
+    # Clean 502, not a 500 traceback.
+    assert r.status_code == 502, r.text
+    assert "LLM request failed" in r.json()["detail"]
+
+
 def test_stt_models_listing(client):
     c, _ = client
     r = c.get("/api/stt/models")

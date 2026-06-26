@@ -154,6 +154,7 @@ async function loadMeetings() {
           <p>${duration} • ${m.transcript_quality || 'pending'}</p>
           <span class="badge">${m.status}</span>
           <div class="actions">
+            <button class="btn btn-secondary" onclick="viewMeeting('${m.id}')">View</button>
             ${m.status === 'recorded' ? `<button class="btn btn-secondary" onclick="showTranscribeOptions('${m.id}')">Re-transcribe</button>` : ''}
             ${m.transcript_quality ? `<button class="btn btn-secondary" onclick="generateNotes('${m.id}')">Notes</button>` : ''}
             ${m.status === 'done' ? `<button class="btn btn-secondary" onclick="exportMeeting('${m.id}', 'md')">MD</button><button class="btn btn-secondary" onclick="exportMeeting('${m.id}', 'pdf')">PDF</button>` : ''}
@@ -164,6 +165,48 @@ async function loadMeetings() {
     }).join('');
   } catch (err) {
     document.getElementById('meetings-list').innerHTML = `<p class="text-error">Error: ${err.message}</p>`;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function viewMeeting(meetingId) {
+  try {
+    const m = await api.get(`/api/meetings/${meetingId}`);
+    let html = '';
+
+    // Transcript
+    if (m.transcript && m.transcript.trim()) {
+      html += `<h3>Transcript <span class="text-muted">(${m.transcript_quality})</span></h3>`;
+      html += `<div class="transcript-box">${escapeHtml(m.transcript)}</div>`;
+    } else {
+      html += `<p class="text-muted">No transcript yet. Use "Re-transcribe" to generate one.</p>`;
+    }
+
+    // Notes
+    if (m.notes) {
+      html += `<h3>Summary</h3><p>${escapeHtml(m.notes.summary)}</p>`;
+      if (m.notes.decisions && m.notes.decisions.length) {
+        html += `<h3>Decisions</h3><ul>${m.notes.decisions.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`;
+      }
+      if (m.notes.action_items && m.notes.action_items.length) {
+        html += `<h3>Action Items</h3><ul>${m.notes.action_items.map((a) => `<li><strong>${escapeHtml(a.task)}</strong> (${escapeHtml(a.owner) || 'unassigned'})</li>`).join('')}</ul>`;
+      }
+      if (m.notes.open_questions && m.notes.open_questions.length) {
+        html += `<h3>Open Questions</h3><ul>${m.notes.open_questions.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ul>`;
+      }
+    } else {
+      html += `<p class="text-muted">No notes generated yet. Use "Notes" to generate them (requires a configured LLM provider).</p>`;
+    }
+
+    showModal(m.title, html);
+  } catch (err) {
+    alert(`Error: ${err.message}`);
   }
 }
 
