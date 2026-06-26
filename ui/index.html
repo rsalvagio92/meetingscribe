@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MeetingScribe</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>MeetingScribe</h1>
+      <nav>
+        <button class="nav-btn active" data-view="record">Record</button>
+        <button class="nav-btn" data-view="library">Library</button>
+        <button class="nav-btn" data-view="settings">Settings</button>
+      </nav>
+    </header>
+
+    <!-- Record View -->
+    <section id="record" class="view active">
+      <div class="card">
+        <h2>Start Recording</h2>
+        <div class="form-group">
+          <label>Meeting Title</label>
+          <input type="text" id="record-title" placeholder="e.g. Team Standup" value="Meeting">
+        </div>
+        <button id="record-start-btn" class="btn btn-primary">Start Recording</button>
+        <button id="record-stop-btn" class="btn btn-danger" style="display:none;">Stop Recording</button>
+      </div>
+
+      <div id="record-status" style="display:none;" class="card">
+        <h3>Recording in progress...</h3>
+        <div id="live-transcript" class="transcript-box"></div>
+      </div>
+    </section>
+
+    <!-- Library View -->
+    <section id="library" class="view" style="display:none;">
+      <div class="card">
+        <h2>Recorded Meetings</h2>
+        <div id="meetings-list" class="meetings-list">
+          <p class="text-muted">Loading...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings View -->
+    <section id="settings" class="view" style="display:none;">
+      <div class="card">
+        <h2>LLM Provider</h2>
+        <div class="form-group">
+          <label>Provider</label>
+          <select id="llm-provider">
+            <option value="copilot">GitHub Copilot</option>
+            <option value="anthropic">Anthropic Claude</option>
+            <option value="openai_compat">OpenAI-compatible</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="llm-model" placeholder="e.g. gpt-4o">
+        </div>
+
+        <!-- Copilot GHE -->
+        <div id="ghe-section" style="display:none;" class="form-group">
+          <label>GHE Host (optional)</label>
+          <input type="text" id="copilot-ghe-host" placeholder="ghe.yourcorp.com">
+        </div>
+
+        <!-- OpenAI-compatible -->
+        <div id="openai-section" style="display:none;" class="form-group">
+          <label>Base URL</label>
+          <input type="text" id="openai-base-url" placeholder="http://localhost:11434/v1">
+        </div>
+
+        <button id="llm-save-btn" class="btn btn-primary">Save LLM Config</button>
+
+        <!-- Copilot Login -->
+        <div id="copilot-section" style="display:none;" class="form-group">
+          <h3>Authenticate with Copilot</h3>
+          <button id="copilot-login-start-btn" class="btn btn-secondary">Start Login</button>
+          <div id="copilot-code-section" style="display:none;">
+            <p>Open this URL and enter the code:</p>
+            <p><strong id="copilot-uri"></strong></p>
+            <p>Code: <code id="copilot-code"></code></p>
+            <button id="copilot-login-poll-btn" class="btn btn-secondary">I've entered the code</button>
+            <p id="copilot-status" class="text-muted"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STT Config -->
+      <div class="card">
+        <h2>Speech-to-Text Models</h2>
+        <div class="form-group">
+          <label>Real-time Model (live captions)</label>
+          <select id="stt-realtime"></select>
+        </div>
+        <div class="form-group">
+          <label>Offline Model (high accuracy)</label>
+          <select id="stt-offline"></select>
+        </div>
+        <button id="stt-save-btn" class="btn btn-primary">Save STT Config</button>
+      </div>
+    </section>
+
+    <!-- Meeting Detail Modal -->
+    <div id="modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <button class="modal-close">&times;</button>
+        <h2 id="modal-title"></h2>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
